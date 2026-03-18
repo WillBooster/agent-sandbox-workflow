@@ -2,6 +2,7 @@
 
 import type { AgentRunResult } from "../services/claude-code";
 import { runClaudePrompt } from "../services/claude-code";
+import { DEFAULT_MODEL } from "../shared/config";
 import { type LogFn, noopLog } from "../shared/logger";
 import type { TicketDetail } from "./fetch-ticket";
 
@@ -42,6 +43,7 @@ export async function implementTicket(
 
   return runClaudePrompt(buildImplementationPrompt(ticket, retryFeedback), {
     cwd: workspaceDir,
+    model: DEFAULT_MODEL,
     log,
   });
 }
