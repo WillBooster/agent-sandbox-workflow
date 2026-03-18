@@ -91,7 +91,7 @@ export async function processSingleTicket(
       continue;
     }
 
-    const review = await reviewWorkspace({ workspaceDir, log });
+    const review = await reviewWorkspace({ ticket, workspaceDir, log });
     if (!review.success) {
       log("Review flow failed. Retrying...");
       continue;

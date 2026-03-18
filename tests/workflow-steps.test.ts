@@ -87,6 +87,7 @@ describe("workflow steps", () => {
     });
     expect(verifyWorkspaceMock).toHaveBeenCalledTimes(1);
     expect(reviewWorkspaceMock).toHaveBeenCalledWith({
+      ticket: ticketAdd,
       workspaceDir: "/tmp/workspace",
       log: expect.any(Function),
     });

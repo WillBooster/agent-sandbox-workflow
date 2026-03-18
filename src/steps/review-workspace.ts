@@ -1,10 +1,12 @@
 /** ステップ4: 実装内容をレビューし、必要なら是正する。 */
 import { runClaudePrompt } from "../services/claude-code";
 import { type LogFn, noopLog } from "../shared/logger";
+import type { TicketDetail } from "./fetch-ticket";
 import type { VerificationResult } from "./verify-workspace";
 import { verifyWorkspace } from "./verify-workspace";
 
 interface ReviewWorkspaceOptions {
+  ticket: TicketDetail;
   workspaceDir: string;
   log?: LogFn;
 }
@@ -21,14 +23,21 @@ function reviewRequiresChanges(reviewText: string): boolean {
 }
 
 /** 読み取り専用のコードレビュー用プロンプトを組み立てる。 */
-export function buildReviewPrompt(): string {
+export function buildReviewPrompt(ticket: TicketDetail): string {
   return `You are a code reviewer. Review the code in this project for:
 - Correctness and potential bugs
 - Code quality and readability
 - Security issues
 - Test coverage
 
-Read the source files and test files, then provide your review.
+You are working independently from the implementation agent and do not share context with it beyond the ticket below.
+
+Ticket ID: ${ticket.id}
+Title: ${ticket.title}
+Description:
+${ticket.body}
+
+Read the source files and test files in this directory in light of the ticket above, then provide your review.
 If there are any issues that require code changes, include "！要修正！" at the beginning of your review and then clearly state what needs to be fixed.
 If everything looks good, say "LGTM" (Looks Good To Me).
 Use Sonnet, not Opus. Do NOT use any git commands. Do NOT modify any files.`;
@@ -65,10 +74,10 @@ export interface ReviewResult {
 export async function reviewWorkspace(
   options: ReviewWorkspaceOptions,
 ): Promise<ReviewResult> {
-  const { workspaceDir, log = noopLog } = options;
+  const { ticket, workspaceDir, log = noopLog } = options;
 
   log("Running code review...");
-  const reviewResult = await runClaudePrompt(buildReviewPrompt(), {
+  const reviewResult = await runClaudePrompt(buildReviewPrompt(ticket), {
     cwd: workspaceDir,
     log,
   });
