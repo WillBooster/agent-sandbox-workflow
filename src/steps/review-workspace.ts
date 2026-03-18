@@ -15,8 +15,13 @@ function reviewLooksGood(reviewText: string): boolean {
   return normalized.includes("LGTM") || normalized.includes("LOOKS GOOD");
 }
 
+/** レビュー結果に修正要求マーカーが含まれるか判定する。 */
+function reviewRequiresChanges(reviewText: string): boolean {
+  return reviewText.includes("！要修正！");
+}
+
 /** 読み取り専用のコードレビュー用プロンプトを組み立てる。 */
-function buildReviewPrompt(): string {
+export function buildReviewPrompt(): string {
   return `You are a code reviewer. Review the code in this project for:
 - Correctness and potential bugs
 - Code quality and readability
@@ -24,14 +29,17 @@ function buildReviewPrompt(): string {
 - Test coverage
 
 Read the source files and test files, then provide your review.
-If there are issues, clearly state what needs to be fixed.
+If there are any issues that require code changes, include "！要修正！" at the beginning of your review and then clearly state what needs to be fixed.
 If everything looks good, say "LGTM" (Looks Good To Me).
 Use Sonnet, not Opus. Do NOT use any git commands. Do NOT modify any files.`;
 }
 
-/** レビュー指摘の妥当性評価と反映用プロンプトを組み立てる。 */
-function buildReviewEvaluationPrompt(reviewText: string): string {
-  return `A code review was performed on this project. Here is the review:
+/** 独立した修正エージェント向けに、レビュー指摘の妥当性評価と反映用プロンプトを組み立てる。 */
+export function buildReviewEvaluationPrompt(reviewText: string): string {
+  return `You are a remediation agent working independently from the reviewer.
+You do not share context with the reviewer. The only review context you may use is the review text below.
+
+A code review was performed on this project. Here is the review:
 
 ---
 ${reviewText}
@@ -81,7 +89,15 @@ export async function reviewWorkspace(
     };
   }
 
-  log("Code review found issues. Evaluating review validity...");
+  if (!reviewRequiresChanges(reviewResult.result)) {
+    return {
+      success: true,
+      reviewText: reviewResult.result,
+      needsChanges: false,
+    };
+  }
+
+  log("Code review found issues. Starting an independent remediation agent...");
   const evaluationResult = await runClaudePrompt(
     buildReviewEvaluationPrompt(reviewResult.result),
     {
