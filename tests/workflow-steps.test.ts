@@ -1,12 +1,13 @@
+/** Integration tests for steps 2-5 using real Claude Code execution. */
 import { describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { implementTicket } from "./src/implement-ticket";
-import { noopLog } from "./src/logger";
-import { reviewWorkspace } from "./src/review-workspace";
-import type { TicketDetail } from "./src/types";
-import { verifyWorkspace } from "./src/verify-workspace";
-import { processTicketList } from "./src/workflow";
+import { noopLog } from "../src/shared/logger";
+import type { TicketDetail } from "../src/shared/types";
+import { implementTicket } from "../src/steps/implement-ticket";
+import { processTicketList } from "../src/steps/process-tickets";
+import { reviewWorkspace } from "../src/steps/review-workspace";
+import { verifyWorkspace } from "../src/steps/verify-workspace";
 import { createTempProjectDir, seedBunProject } from "./test-helpers";
 
 const ticketAdd: TicketDetail = {

@@ -1,19 +1,20 @@
-import { fetchTicketDetail, fetchTickets } from "./backlog";
-import { BACKLOG_BASE_URL, DEFAULT_MAX_RETRIES } from "./config";
-import { implementTicket } from "./implement-ticket";
-import { type LogFn, noopLog } from "./logger";
-import { reviewWorkspace } from "./review-workspace";
-import type {
-  TicketDetail,
-  TicketProcessingResult,
-  TicketSummary,
-} from "./types";
-import { verifyWorkspace } from "./verify-workspace";
+/** Step 5: orchestrates repeated ticket processing over a ticket list. */
 import {
   copyWorkspaceToDist,
   ensureDir,
   initializeWorkspaceGitRepo,
-} from "./workspace";
+} from "../services/workspace";
+import { BACKLOG_BASE_URL, DEFAULT_MAX_RETRIES } from "../shared/config";
+import { type LogFn, noopLog } from "../shared/logger";
+import type {
+  TicketDetail,
+  TicketProcessingResult,
+  TicketSummary,
+} from "../shared/types";
+import { fetchTicketDetail, fetchTickets } from "./fetch-ticket";
+import { implementTicket } from "./implement-ticket";
+import { reviewWorkspace } from "./review-workspace";
+import { verifyWorkspace } from "./verify-workspace";
 
 interface ProcessTicketOptions {
   workspaceDir: string;
@@ -22,6 +23,18 @@ interface ProcessTicketOptions {
   maxRetries?: number;
 }
 
+interface ProcessTicketListOptions {
+  workspaceDir: string;
+  distDir: string;
+  log?: LogFn;
+  maxRetries?: number;
+}
+
+interface ProcessBacklogTicketsOptions extends ProcessTicketListOptions {
+  baseUrl?: string;
+}
+
+/** Processes one ticket through implementation, verification, and review. */
 export async function processSingleTicket(
   ticket: TicketDetail,
   options: ProcessTicketOptions,
@@ -78,13 +91,7 @@ export async function processSingleTicket(
   };
 }
 
-interface ProcessTicketListOptions {
-  workspaceDir: string;
-  distDir: string;
-  log?: LogFn;
-  maxRetries?: number;
-}
-
+/** Repeats the workflow against an in-memory list of ticket details. */
 export async function processTicketList(
   tickets: TicketDetail[],
   options: ProcessTicketListOptions,
@@ -121,10 +128,7 @@ export async function processTicketList(
   return results;
 }
 
-interface ProcessBacklogTicketsOptions extends ProcessTicketListOptions {
-  baseUrl?: string;
-}
-
+/** Fetches backlog tickets and runs the full workflow against all of them. */
 export async function processBacklogTickets(
   options: ProcessBacklogTicketsOptions,
 ): Promise<TicketProcessingResult[]> {

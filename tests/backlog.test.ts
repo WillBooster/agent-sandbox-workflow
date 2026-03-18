@@ -1,5 +1,6 @@
+/** Integration test for step 1 using the live backlog API. */
 import { expect, test } from "bun:test";
-import { fetchTicketDetail } from "./src/backlog";
+import { fetchTicketDetail } from "../src/steps/fetch-ticket";
 
 test("step 1: fetches a ticket detail from backlog", async () => {
   const ticket = await fetchTicketDetail(1);

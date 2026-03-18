@@ -1,8 +1,11 @@
-import { runClaudePrompt } from "./claude";
-import { type LogFn, noopLog } from "./logger";
-import { buildVerificationPrompt } from "./prompts";
-import type { VerificationResult, VerificationStepResult } from "./types";
-import { hasScript } from "./workspace";
+/** Step 3: verifies a workspace by running its configured checks. */
+import { runClaudePrompt } from "../services/claude-code";
+import { hasScript } from "../services/workspace";
+import { type LogFn, noopLog } from "../shared/logger";
+import type {
+  VerificationResult,
+  VerificationStepResult,
+} from "../shared/types";
 
 const CHECKS = [
   { name: "typecheck", command: "bun run typecheck" },
@@ -15,6 +18,12 @@ interface VerifyWorkspaceOptions {
   log?: LogFn;
 }
 
+/** Builds the verification prompt for a single command. */
+function buildVerificationPrompt(command: string): string {
+  return `Run \`${command}\` and fix any issues that command surfaces. Do NOT use any git commands. Only fix issues needed to make the command pass; do not add new features. Use Sonnet, not Opus.`;
+}
+
+/** Runs typecheck/format/test with Claude fixing any issues it encounters. */
 export async function verifyWorkspace(
   options: VerifyWorkspaceOptions,
 ): Promise<VerificationResult> {

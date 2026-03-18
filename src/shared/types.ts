@@ -1,3 +1,4 @@
+/** Shared domain and result types for the workflow steps. */
 export interface TicketSummary {
   id: number;
   title: string;

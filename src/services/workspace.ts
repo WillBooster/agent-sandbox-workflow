@@ -1,8 +1,10 @@
+/** Filesystem helpers for workspace setup and artifact copying. */
 import { execSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import { type LogFn, noopLog } from "./logger";
+import { type LogFn, noopLog } from "../shared/logger";
 
+/** Ensures that the target directory exists. */
 export function ensureDir(dir: string, log: LogFn = noopLog): void {
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
@@ -10,6 +12,7 @@ export function ensureDir(dir: string, log: LogFn = noopLog): void {
   }
 }
 
+/** Initializes the workspace as a git repository when needed by Claude Code. */
 export function initializeWorkspaceGitRepo(
   workspaceDir: string,
   log: LogFn = noopLog,
@@ -28,6 +31,7 @@ export function initializeWorkspaceGitRepo(
   });
 }
 
+/** Copies the current workspace to the dist directory, excluding transient files. */
 export function copyWorkspaceToDist(
   workspaceDir: string,
   distDir: string,
@@ -45,6 +49,7 @@ export function copyWorkspaceToDist(
   log(`Copied workspace to ${distDir}`);
 }
 
+/** Checks whether a named npm script exists in the workspace package.json. */
 export function hasScript(workspaceDir: string, name: string): boolean {
   try {
     const pkgPath = join(workspaceDir, "package.json");

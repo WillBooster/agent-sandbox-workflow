@@ -1,7 +1,9 @@
-import { BACKLOG_BASE_URL } from "./config";
-import { type LogFn, noopLog } from "./logger";
-import type { TicketDetail, TicketSummary } from "./types";
+/** Step 1: fetches ticket data from the backlog endpoint. */
+import { BACKLOG_BASE_URL } from "../shared/config";
+import { type LogFn, noopLog } from "../shared/logger";
+import type { TicketDetail, TicketSummary } from "../shared/types";
 
+/** Fetches the available ticket summaries from the backlog API. */
 export async function fetchTickets(
   baseUrl = BACKLOG_BASE_URL,
   log: LogFn = noopLog,
@@ -19,6 +21,7 @@ export async function fetchTickets(
   return data.tickets;
 }
 
+/** Fetches the full detail for a single backlog ticket. */
 export async function fetchTicketDetail(
   id: number,
   baseUrl = BACKLOG_BASE_URL,

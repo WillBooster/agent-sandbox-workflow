@@ -1,13 +1,16 @@
+/** Test-only helpers for creating real Bun workspaces on disk. */
 import { execSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { initializeWorkspaceGitRepo } from "./src/workspace";
+import { initializeWorkspaceGitRepo } from "../src/services/workspace";
 
+/** Creates a temporary directory for an integration test workspace. */
 export function createTempProjectDir(prefix: string): string {
   return mkdtempSync(join(tmpdir(), prefix));
 }
 
+/** Seeds a minimal Bun + TypeScript project used by the Claude integration tests. */
 export function seedBunProject(workspaceDir: string): void {
   mkdirSync(join(workspaceDir, "src"), { recursive: true });
 

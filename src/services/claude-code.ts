@@ -1,12 +1,14 @@
+/** Claude Code session helpers built on the preview V2 SDK. */
 import { execSync } from "node:child_process";
 import {
   type SDKMessage,
   unstable_v2_createSession,
 } from "@anthropic-ai/claude-agent-sdk";
-import { DEFAULT_MAX_TURNS, DEFAULT_MODEL } from "./config";
-import { type LogFn, noopLog } from "./logger";
-import type { AgentRunResult } from "./types";
+import { DEFAULT_MAX_TURNS, DEFAULT_MODEL } from "../shared/config";
+import { type LogFn, noopLog } from "../shared/logger";
+import type { AgentRunResult } from "../shared/types";
 
+/** Converts a streamed SDK result message into the local result shape. */
 export function extractAgentResult(message: SDKMessage): AgentRunResult | null {
   if (message.type !== "result") return null;
 
@@ -44,6 +46,7 @@ interface RunClaudePromptOptions {
   log?: LogFn;
 }
 
+/** Runs a single Sonnet-backed Claude Code prompt inside the target directory. */
 export async function runClaudePrompt(
   prompt: string,
   options: RunClaudePromptOptions,
