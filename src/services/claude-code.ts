@@ -1,4 +1,4 @@
-/** Claude Code session helpers built on the preview V2 SDK. */
+/** プレビュー版 V2 SDK を使って Claude Code を実行する補助関数群。 */
 import { execSync } from "node:child_process";
 import {
   type SDKMessage,
@@ -6,9 +6,14 @@ import {
 } from "@anthropic-ai/claude-agent-sdk";
 import { DEFAULT_MAX_TURNS, DEFAULT_MODEL } from "../shared/config";
 import { type LogFn, noopLog } from "../shared/logger";
-import type { AgentRunResult } from "../shared/types";
 
-/** Converts a streamed SDK result message into the local result shape. */
+/** Claude 実行結果の最小表現。 */
+export interface AgentRunResult {
+  result: string;
+  isError: boolean;
+}
+
+/** ストリームされた SDK の result メッセージをローカル型へ変換する。 */
 export function extractAgentResult(message: SDKMessage): AgentRunResult | null {
   if (message.type !== "result") return null;
 
@@ -46,7 +51,7 @@ interface RunClaudePromptOptions {
   log?: LogFn;
 }
 
-/** Runs a single Sonnet-backed Claude Code prompt inside the target directory. */
+/** 指定ディレクトリ内で Sonnet ベースの Claude Code プロンプトを 1 回実行する。 */
 export async function runClaudePrompt(
   prompt: string,
   options: RunClaudePromptOptions,

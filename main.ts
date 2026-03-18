@@ -1,4 +1,4 @@
-/** Entrypoint for running the full backlog workflow from the CLI. */
+/** CLI からバックログ処理全体を起動するエントリーポイント。 */
 import { resolve } from "node:path";
 import { defaultLog } from "./src/shared/logger";
 import { processBacklogTickets } from "./src/steps/process-tickets";
@@ -6,7 +6,7 @@ import { processBacklogTickets } from "./src/steps/process-tickets";
 const WORKSPACE_DIR = resolve("workspace");
 const DIST_DIR = resolve("dist");
 
-/** Runs the production workflow against the backlog API. */
+/** 本番用のバックログワークフローを実行する。 */
 export async function main(): Promise<void> {
   defaultLog("=== Agent Sandbox Workflow Started ===");
   await processBacklogTickets({

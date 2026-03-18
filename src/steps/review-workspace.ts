@@ -1,7 +1,7 @@
-/** Step 4: reviews an implementation and optionally applies review fixes. */
+/** ステップ4: 実装内容をレビューし、必要なら是正する。 */
 import { runClaudePrompt } from "../services/claude-code";
 import { type LogFn, noopLog } from "../shared/logger";
-import type { ReviewResult } from "../shared/types";
+import type { VerificationResult } from "./verify-workspace";
 import { verifyWorkspace } from "./verify-workspace";
 
 interface ReviewWorkspaceOptions {
@@ -9,13 +9,13 @@ interface ReviewWorkspaceOptions {
   log?: LogFn;
 }
 
-/** Detects whether the review output effectively approves the code. */
+/** レビュー結果が実質的に承認かどうかを判定する。 */
 function reviewLooksGood(reviewText: string): boolean {
   const normalized = reviewText.toUpperCase();
   return normalized.includes("LGTM") || normalized.includes("LOOKS GOOD");
 }
 
-/** Builds the prompt used for the read-only code review pass. */
+/** 読み取り専用のコードレビュー用プロンプトを組み立てる。 */
 function buildReviewPrompt(): string {
   return `You are a code reviewer. Review the code in this project for:
 - Correctness and potential bugs
@@ -29,7 +29,7 @@ If everything looks good, say "LGTM" (Looks Good To Me).
 Use Sonnet, not Opus. Do NOT use any git commands. Do NOT modify any files.`;
 }
 
-/** Builds the prompt that evaluates and applies review feedback. */
+/** レビュー指摘の妥当性評価と反映用プロンプトを組み立てる。 */
 function buildReviewEvaluationPrompt(reviewText: string): string {
   return `A code review was performed on this project. Here is the review:
 
@@ -45,7 +45,15 @@ Please evaluate this review:
 Use Sonnet, not Opus. Do NOT use any git commands.`;
 }
 
-/** Runs the review flow and re-verifies the workspace if changes were applied. */
+/** レビューフローを実行し、変更が入った場合は再検証する。 */
+export interface ReviewResult {
+  success: boolean;
+  reviewText: string;
+  needsChanges: boolean;
+  evaluationText?: string;
+  verification?: VerificationResult;
+}
+
 export async function reviewWorkspace(
   options: ReviewWorkspaceOptions,
 ): Promise<ReviewResult> {

@@ -1,4 +1,4 @@
-/** Step 5: orchestrates repeated ticket processing over a ticket list. */
+/** ステップ5: チケット列に対してステップ1-4を繰り返し実行する。 */
 import {
   copyWorkspaceToDist,
   ensureDir,
@@ -6,11 +6,7 @@ import {
 } from "../services/workspace";
 import { BACKLOG_BASE_URL, DEFAULT_MAX_RETRIES } from "../shared/config";
 import { type LogFn, noopLog } from "../shared/logger";
-import type {
-  TicketDetail,
-  TicketProcessingResult,
-  TicketSummary,
-} from "../shared/types";
+import type { TicketDetail, TicketSummary } from "./fetch-ticket";
 import { fetchTicketDetail, fetchTickets } from "./fetch-ticket";
 import { implementTicket } from "./implement-ticket";
 import { reviewWorkspace } from "./review-workspace";
@@ -34,7 +30,14 @@ interface ProcessBacklogTicketsOptions extends ProcessTicketListOptions {
   baseUrl?: string;
 }
 
-/** Processes one ticket through implementation, verification, and review. */
+/** チケット処理 1 件分の結果。 */
+export interface TicketProcessingResult {
+  ticketId: number;
+  success: boolean;
+  attempts: number;
+}
+
+/** 1 件のチケットを実装・検証・レビューまで通して処理する。 */
 export async function processSingleTicket(
   ticket: TicketDetail,
   options: ProcessTicketOptions,
@@ -91,7 +94,7 @@ export async function processSingleTicket(
   };
 }
 
-/** Repeats the workflow against an in-memory list of ticket details. */
+/** 詳細取得済みチケット列に対してワークフローを繰り返し実行する。 */
 export async function processTicketList(
   tickets: TicketDetail[],
   options: ProcessTicketListOptions,
@@ -128,7 +131,7 @@ export async function processTicketList(
   return results;
 }
 
-/** Fetches backlog tickets and runs the full workflow against all of them. */
+/** バックログからチケットを取得し、全件にワークフローを適用する。 */
 export async function processBacklogTickets(
   options: ProcessBacklogTicketsOptions,
 ): Promise<TicketProcessingResult[]> {

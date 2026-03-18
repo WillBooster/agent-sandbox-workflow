@@ -1,10 +1,10 @@
-/** Filesystem helpers for workspace setup and artifact copying. */
+/** ワークスペースの初期化と成果物コピーを扱う補助関数群。 */
 import { execSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { type LogFn, noopLog } from "../shared/logger";
 
-/** Ensures that the target directory exists. */
+/** 対象ディレクトリが存在しなければ作成する。 */
 export function ensureDir(dir: string, log: LogFn = noopLog): void {
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
@@ -12,7 +12,7 @@ export function ensureDir(dir: string, log: LogFn = noopLog): void {
   }
 }
 
-/** Initializes the workspace as a git repository when needed by Claude Code. */
+/** Claude Code が要求するため、必要ならワークスペースを git 管理下に置く。 */
 export function initializeWorkspaceGitRepo(
   workspaceDir: string,
   log: LogFn = noopLog,
@@ -31,7 +31,7 @@ export function initializeWorkspaceGitRepo(
   });
 }
 
-/** Copies the current workspace to the dist directory, excluding transient files. */
+/** 一時ファイルを除いて現在のワークスペースを dist へ複製する。 */
 export function copyWorkspaceToDist(
   workspaceDir: string,
   distDir: string,
@@ -49,7 +49,7 @@ export function copyWorkspaceToDist(
   log(`Copied workspace to ${distDir}`);
 }
 
-/** Checks whether a named npm script exists in the workspace package.json. */
+/** workspace の package.json に指定スクリプトがあるかを返す。 */
 export function hasScript(workspaceDir: string, name: string): boolean {
   try {
     const pkgPath = join(workspaceDir, "package.json");

@@ -1,4 +1,4 @@
-/** Integration test for step 1 using the live backlog API. */
+/** ライブのバックログ API を使うステップ1の統合テスト。 */
 import { expect, test } from "bun:test";
 import { fetchTicketDetail } from "../src/steps/fetch-ticket";
 

@@ -1,9 +1,19 @@
-/** Step 1: fetches ticket data from the backlog endpoint. */
+/** ステップ1: バックログ API からチケット情報を取得する。 */
 import { BACKLOG_BASE_URL } from "../shared/config";
 import { type LogFn, noopLog } from "../shared/logger";
-import type { TicketDetail, TicketSummary } from "../shared/types";
 
-/** Fetches the available ticket summaries from the backlog API. */
+/** チケット一覧向けの要約情報。 */
+export interface TicketSummary {
+  id: number;
+  title: string;
+}
+
+/** チケット 1 件分の詳細情報。 */
+export interface TicketDetail extends TicketSummary {
+  body: string;
+}
+
+/** バックログ API からチケット一覧を取得する。 */
 export async function fetchTickets(
   baseUrl = BACKLOG_BASE_URL,
   log: LogFn = noopLog,
@@ -21,7 +31,7 @@ export async function fetchTickets(
   return data.tickets;
 }
 
-/** Fetches the full detail for a single backlog ticket. */
+/** バックログ API から 1 件分のチケット詳細を取得する。 */
 export async function fetchTicketDetail(
   id: number,
   baseUrl = BACKLOG_BASE_URL,

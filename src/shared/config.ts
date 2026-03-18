@@ -1,4 +1,4 @@
-/** Shared runtime defaults used across the workflow modules. */
+/** ワークフロー全体で使う既定値。 */
 export const BACKLOG_BASE_URL =
   "https://willbooster.github.io/agent-sandbox-backlog";
 export const DEFAULT_MODEL = "sonnet";

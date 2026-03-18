@@ -1,7 +1,9 @@
-/** Step 2: implements a single ticket with Claude Code. */
+/** ステップ2: Claude Code で単一チケットを実装する。 */
+
+import type { AgentRunResult } from "../services/claude-code";
 import { runClaudePrompt } from "../services/claude-code";
 import { type LogFn, noopLog } from "../shared/logger";
-import type { AgentRunResult, TicketDetail } from "../shared/types";
+import type { TicketDetail } from "./fetch-ticket";
 
 interface ImplementTicketOptions {
   workspaceDir: string;
@@ -9,7 +11,7 @@ interface ImplementTicketOptions {
   log?: LogFn;
 }
 
-/** Builds the implementation prompt for a specific ticket. */
+/** 対象チケット用の実装プロンプトを組み立てる。 */
 function buildImplementationPrompt(
   ticket: TicketDetail,
   isFirstTicket: boolean,
@@ -38,7 +40,7 @@ Use Bun as the runtime. Use TypeScript. Do not use external packages unless abso
 Use the Sonnet model behavior level only. Do NOT use Opus. Do NOT use any git commands.`;
 }
 
-/** Runs Claude Code to implement one ticket inside the given workspace. */
+/** 指定ワークスペース内で 1 件分のチケット実装を実行する。 */
 export async function implementTicket(
   ticket: TicketDetail,
   options: ImplementTicketOptions,

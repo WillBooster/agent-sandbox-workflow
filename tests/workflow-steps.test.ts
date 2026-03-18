@@ -1,9 +1,9 @@
-/** Integration tests for steps 2-5 using real Claude Code execution. */
+/** 実際の Claude Code を使うステップ2-5の統合テスト。 */
 import { describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { noopLog } from "../src/shared/logger";
-import type { TicketDetail } from "../src/shared/types";
+import type { TicketDetail } from "../src/steps/fetch-ticket";
 import { implementTicket } from "../src/steps/implement-ticket";
 import { processTicketList } from "../src/steps/process-tickets";
 import { reviewWorkspace } from "../src/steps/review-workspace";
