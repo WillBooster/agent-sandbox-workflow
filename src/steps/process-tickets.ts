@@ -37,6 +37,12 @@ export interface TicketProcessingResult {
   attempts: number;
 }
 
+/** ワークフロー開始前に必要なワークスペース準備をまとめて行う。 */
+function prepareWorkspace(workspaceDir: string, log: LogFn): void {
+  ensureDir(workspaceDir, log);
+  initializeWorkspaceGitRepo(workspaceDir, log);
+}
+
 /** 1 件のチケットを実装・検証・レビューまで通して処理する。 */
 export async function processSingleTicket(
   ticket: TicketDetail,
@@ -106,8 +112,7 @@ export async function processTicketList(
     maxRetries = DEFAULT_MAX_RETRIES,
   } = options;
 
-  ensureDir(workspaceDir, log);
-  initializeWorkspaceGitRepo(workspaceDir, log);
+  prepareWorkspace(workspaceDir, log);
 
   const results: TicketProcessingResult[] = [];
 
@@ -146,8 +151,7 @@ export async function processBacklogTickets(
   const summaries: TicketSummary[] = await fetchTickets(baseUrl, log);
   const results: TicketProcessingResult[] = [];
 
-  ensureDir(workspaceDir, log);
-  initializeWorkspaceGitRepo(workspaceDir, log);
+  prepareWorkspace(workspaceDir, log);
 
   for (const [index, summary] of summaries.entries()) {
     log(

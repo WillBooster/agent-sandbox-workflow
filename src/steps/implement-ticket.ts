@@ -47,11 +47,8 @@ export async function implementTicket(
 ): Promise<AgentRunResult> {
   const { workspaceDir, isFirstTicket = false, log = noopLog } = options;
 
-  return await runClaudePrompt(
-    buildImplementationPrompt(ticket, isFirstTicket),
-    {
-      cwd: workspaceDir,
-      log,
-    },
-  );
+  return runClaudePrompt(buildImplementationPrompt(ticket, isFirstTicket), {
+    cwd: workspaceDir,
+    log,
+  });
 }

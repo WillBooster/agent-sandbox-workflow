@@ -1,5 +1,4 @@
 /** プレビュー版 V2 SDK を使って Claude Code を実行する補助関数群。 */
-import { execSync } from "node:child_process";
 import {
   type SDKMessage,
   unstable_v2_createSession,
@@ -67,16 +66,12 @@ export async function runClaudePrompt(
   log(`[Agent] Prompt: ${prompt.slice(0, 100)}...`);
 
   try {
-    return await withWorkingDirectory(cwd, async () => {
-      const claudePath = execSync("which claude", {
-        encoding: "utf-8",
-      }).trim();
+    return withWorkingDirectory(cwd, async () => {
       const sessionOptions = {
         model,
         permissionMode: "bypassPermissions",
         allowDangerouslySkipPermissions: true,
         maxTurns,
-        pathToClaudeCodeExecutable: claudePath,
       } as Parameters<typeof unstable_v2_createSession>[0];
 
       await using session = unstable_v2_createSession(sessionOptions);
