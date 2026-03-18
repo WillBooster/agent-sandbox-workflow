@@ -8,13 +8,15 @@ import type { TicketDetail } from "./fetch-ticket";
 interface ImplementTicketOptions {
   workspaceDir: string;
   isFirstTicket?: boolean;
+  retryFeedback?: string;
   log?: LogFn;
 }
 
 /** 対象チケット用の実装プロンプトを組み立てる。 */
-function buildImplementationPrompt(
+export function buildImplementationPrompt(
   ticket: TicketDetail,
   isFirstTicket: boolean,
+  retryFeedback?: string,
 ): string {
   const additionalInstruction = isFirstTicket
     ? `\n\nIMPORTANT: Since this is the first ticket, also define the following npm scripts in package.json:
@@ -25,6 +27,9 @@ function buildImplementationPrompt(
 Also set up biome.json for the project, and tsconfig.json if not present.
 Make sure to install necessary devDependencies (@biomejs/biome, @types/bun, typescript).`
     : "";
+  const retryInstruction = retryFeedback
+    ? `\n\nThe previous implementation attempt failed verification. Use the following command output, including stdout/stderr, to fix the implementation:\n\n\`\`\`\n${retryFeedback}\n\`\`\``
+    : "";
 
   return `You are implementing a software project. Here is the ticket:
 
@@ -33,6 +38,7 @@ Description:
 ${ticket.body}
 
 ${additionalInstruction}
+${retryInstruction}
 
 Please implement this feature. Also write test code (using bun:test with import { test, expect, describe } from "bun:test") in files ending with .test.ts.
 
@@ -45,10 +51,18 @@ export async function implementTicket(
   ticket: TicketDetail,
   options: ImplementTicketOptions,
 ): Promise<AgentRunResult> {
-  const { workspaceDir, isFirstTicket = false, log = noopLog } = options;
+  const {
+    workspaceDir,
+    isFirstTicket = false,
+    retryFeedback,
+    log = noopLog,
+  } = options;
 
-  return runClaudePrompt(buildImplementationPrompt(ticket, isFirstTicket), {
+  return runClaudePrompt(
+    buildImplementationPrompt(ticket, isFirstTicket, retryFeedback),
+    {
     cwd: workspaceDir,
     log,
-  });
+    },
+  );
 }

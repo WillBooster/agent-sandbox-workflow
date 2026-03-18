@@ -37,6 +37,14 @@ export interface TicketProcessingResult {
   attempts: number;
 }
 
+function formatVerificationFeedback(ticket: TicketDetail, attempt: number, output: string) {
+  return [
+    `Verification failed for ticket #${ticket.id} on attempt ${attempt}.`,
+    "This is the exact output from the failed verification command.",
+    output,
+  ].join("\n\n");
+}
+
 /** ワークフロー開始前に必要なワークスペース準備をまとめて行う。 */
 function prepareWorkspace(workspaceDir: string, log: LogFn): void {
   ensureDir(workspaceDir, log);
@@ -54,6 +62,7 @@ export async function processSingleTicket(
     isFirstTicket = false,
     maxRetries = DEFAULT_MAX_RETRIES,
   } = options;
+  let retryFeedback: string | undefined;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     log(
@@ -63,6 +72,7 @@ export async function processSingleTicket(
     const implementation = await implementTicket(ticket, {
       workspaceDir,
       isFirstTicket,
+      retryFeedback,
       log,
     });
     if (implementation.isError) {
@@ -72,6 +82,10 @@ export async function processSingleTicket(
 
     const verification = await verifyWorkspace({ workspaceDir, log });
     if (!verification.success) {
+      const failedStep = verification.steps.find((step) => step.isError);
+      retryFeedback = failedStep
+        ? formatVerificationFeedback(ticket, attempt, failedStep.output)
+        : "Verification failed without command output.";
       log("Verification failed. Retrying...");
       continue;
     }
