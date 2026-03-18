@@ -15,7 +15,6 @@ import { verifyWorkspace } from "./verify-workspace";
 interface ProcessTicketOptions {
   workspaceDir: string;
   log?: LogFn;
-  isFirstTicket?: boolean;
   maxRetries?: number;
 }
 
@@ -37,7 +36,11 @@ export interface TicketProcessingResult {
   attempts: number;
 }
 
-function formatVerificationFeedback(ticket: TicketDetail, attempt: number, output: string) {
+function formatVerificationFeedback(
+  ticket: TicketDetail,
+  attempt: number,
+  output: string,
+) {
   return [
     `Verification failed for ticket #${ticket.id} on attempt ${attempt}.`,
     "This is the exact output from the failed verification command.",
@@ -59,7 +62,6 @@ export async function processSingleTicket(
   const {
     workspaceDir,
     log = noopLog,
-    isFirstTicket = false,
     maxRetries = DEFAULT_MAX_RETRIES,
   } = options;
   let retryFeedback: string | undefined;
@@ -71,7 +73,6 @@ export async function processSingleTicket(
 
     const implementation = await implementTicket(ticket, {
       workspaceDir,
-      isFirstTicket,
       retryFeedback,
       log,
     });
@@ -130,7 +131,7 @@ export async function processTicketList(
 
   const results: TicketProcessingResult[] = [];
 
-  for (const [index, ticket] of tickets.entries()) {
+  for (const ticket of tickets) {
     log(
       `\n========== Processing Ticket #${ticket.id}: ${ticket.title} ==========`,
     );
@@ -138,7 +139,6 @@ export async function processTicketList(
     const result = await processSingleTicket(ticket, {
       workspaceDir,
       log,
-      isFirstTicket: index === 0,
       maxRetries,
     });
     results.push(result);
@@ -167,7 +167,7 @@ export async function processBacklogTickets(
 
   prepareWorkspace(workspaceDir, log);
 
-  for (const [index, summary] of summaries.entries()) {
+  for (const summary of summaries) {
     log(
       `\n========== Processing Ticket #${summary.id}: ${summary.title} ==========`,
     );
@@ -176,7 +176,6 @@ export async function processBacklogTickets(
     const result = await processSingleTicket(ticket, {
       workspaceDir,
       log,
-      isFirstTicket: index === 0,
       maxRetries,
     });
     results.push(result);

@@ -1,18 +1,19 @@
 {
   "name": "agent-sandbox-workflow",
-  "module": "main.ts",
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "bun main.ts",
-    "typecheck": "bunx tsc --noEmit",
-    "format": "bunx biome check --write .",
-    "test": "bun test"
+    "start": "tsx main.ts",
+    "typecheck": "tsc --noEmit",
+    "format": "biome check --write .",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.6",
-    "@types/bun": "latest",
-    "typescript": "^5.9.3"
+    "@types/node": "^24.5.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.77"

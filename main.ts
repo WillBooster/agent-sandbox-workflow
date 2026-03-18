@@ -1,5 +1,6 @@
 /** CLI からバックログ処理全体を起動するエントリーポイント。 */
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defaultLog } from "./src/shared/logger";
 import { processBacklogTickets } from "./src/steps/process-tickets";
 
@@ -17,7 +18,11 @@ export async function main(): Promise<void> {
   defaultLog("=== All tickets processed ===");
 }
 
-if (import.meta.main) {
+const isMainModule =
+  process.argv[1] !== undefined &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isMainModule) {
   main().catch((err) => {
     console.error("Fatal error:", err);
     process.exit(1);

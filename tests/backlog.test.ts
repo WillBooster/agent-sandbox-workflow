@@ -1,5 +1,5 @@
 /** ライブのバックログ API を使うステップ1の統合テスト。 */
-import { expect, test } from "bun:test";
+import { expect, test } from "vitest";
 import { fetchTicketDetail } from "../src/steps/fetch-ticket";
 
 test("step 1: fetches a ticket detail from backlog", async () => {

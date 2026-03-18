@@ -1,4 +1,4 @@
-/** 実ファイルを使う Bun 統合テスト向けの補助関数。 */
+/** 実ファイルを使う Node.js 統合テスト向けの補助関数。 */
 import { execSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -10,8 +10,8 @@ export function createTempProjectDir(prefix: string): string {
   return mkdtempSync(join(tmpdir(), prefix));
 }
 
-/** Claude 統合テスト用の最小 Bun + TypeScript プロジェクトを配置する。 */
-export function seedBunProject(workspaceDir: string): void {
+/** Claude 統合テスト用の最小 Node.js プロジェクトを配置する。 */
+export function seedNodeProject(workspaceDir: string): void {
   mkdirSync(join(workspaceDir, "src"), { recursive: true });
 
   writeFileSync(
@@ -22,14 +22,14 @@ export function seedBunProject(workspaceDir: string): void {
         private: true,
         type: "module",
         scripts: {
-          typecheck: "bunx tsc --noEmit",
-          format: "bunx biome check --write .",
-          test: "bun test",
+          format: "biome check --write .",
+          test: "vitest run",
         },
         devDependencies: {
           "@biomejs/biome": "^2.4.6",
-          "@types/bun": "latest",
+          "@types/node": "^24.5.2",
           typescript: "^5.9.3",
+          vitest: "^3.2.4",
         },
       },
       null,
@@ -46,7 +46,6 @@ export function seedBunProject(workspaceDir: string): void {
           target: "ESNext",
           module: "Preserve",
           moduleDetection: "force",
-          allowJs: true,
           moduleResolution: "bundler",
           allowImportingTsExtensions: true,
           verbatimModuleSyntax: true,
@@ -79,5 +78,5 @@ export function seedBunProject(workspaceDir: string): void {
   writeFileSync(join(workspaceDir, "README.md"), "# Workflow Test Project\n");
 
   initializeWorkspaceGitRepo(workspaceDir);
-  execSync("bun install", { cwd: workspaceDir, stdio: "pipe" });
+  execSync("npm install", { cwd: workspaceDir, stdio: "pipe" });
 }

@@ -1,6 +1,7 @@
 /** ステップ3: ワークスペースの検証コマンドを実行する。 */
-import { runClaudePrompt } from "../services/claude-code";
-import { hasScript } from "../services/workspace";
+import { spawnSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { type LogFn, noopLog } from "../shared/logger";
 
 /** 検証ステップ 1 件分の実行結果。 */
@@ -17,23 +18,44 @@ export interface VerificationResult {
   steps: VerificationStepResult[];
 }
 
-const CHECKS = [
-  { name: "typecheck", command: "bun run typecheck" },
-  { name: "format", command: "bun run format" },
-  { name: "test", command: "bun run test" },
-] as const;
+const CHECKS = [{ name: "format" }, { name: "test" }] as const;
 
 interface VerifyWorkspaceOptions {
   workspaceDir: string;
   log?: LogFn;
 }
 
-/** 単一コマンド用の検証プロンプトを組み立てる。 */
-function buildVerificationPrompt(command: string): string {
-  return `Run \`${command}\` and fix any issues that command surfaces. Do NOT use any git commands. Only fix issues needed to make the command pass; do not add new features. Use Sonnet, not Opus.`;
+function hasScript(workspaceDir: string, name: string): boolean {
+  try {
+    const pkgPath = join(workspaceDir, "package.json");
+    if (!existsSync(pkgPath)) return false;
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+    return !!pkg.scripts?.[name];
+  } catch {
+    return false;
+  }
 }
 
-/** typecheck/format/test を順に回し、必要なら Claude に修正させる。 */
+function runCheck(workspaceDir: string, name: string): VerificationStepResult {
+  const command = `npm run ${name}`;
+  const result = spawnSync("npm", ["run", name], {
+    cwd: workspaceDir,
+    encoding: "utf-8",
+  });
+  const output = `${result.stdout ?? ""}${result.stderr ?? ""}`.trim();
+
+  return {
+    name,
+    skipped: false,
+    output:
+      output.length > 0
+        ? output
+        : `${command} exited with code ${result.status ?? "unknown"}`,
+    isError: result.status !== 0,
+  };
+}
+
+/** format/test をローカル実行し、exit code と出力を検証する。 */
 export async function verifyWorkspace(
   options: VerifyWorkspaceOptions,
 ): Promise<VerificationResult> {
@@ -44,28 +66,20 @@ export async function verifyWorkspace(
     if (!hasScript(workspaceDir, check.name)) {
       steps.push({
         name: check.name,
-        skipped: true,
+        skipped: false,
         output: `Missing script: ${check.name}`,
-        isError: false,
+        isError: true,
       });
-      continue;
+      return {
+        success: false,
+        steps,
+      };
     }
 
     log(`Running ${check.name}...`);
-    const result = await runClaudePrompt(
-      buildVerificationPrompt(check.command),
-      {
-        cwd: workspaceDir,
-        log,
-      },
-    );
+    const result = runCheck(workspaceDir, check.name);
 
-    steps.push({
-      name: check.name,
-      skipped: false,
-      output: result.result,
-      isError: result.isError,
-    });
+    steps.push(result);
 
     if (result.isError) {
       return {

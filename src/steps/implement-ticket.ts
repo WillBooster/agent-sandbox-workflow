@@ -7,7 +7,6 @@ import type { TicketDetail } from "./fetch-ticket";
 
 interface ImplementTicketOptions {
   workspaceDir: string;
-  isFirstTicket?: boolean;
   retryFeedback?: string;
   log?: LogFn;
 }
@@ -15,18 +14,8 @@ interface ImplementTicketOptions {
 /** 対象チケット用の実装プロンプトを組み立てる。 */
 export function buildImplementationPrompt(
   ticket: TicketDetail,
-  isFirstTicket: boolean,
   retryFeedback?: string,
 ): string {
-  const additionalInstruction = isFirstTicket
-    ? `\n\nIMPORTANT: Since this is the first ticket, also define the following npm scripts in package.json:
-- "typecheck": type-checking command using bunx tsc --noEmit
-- "format": formatting/linting command using bunx biome check --write .
-- "test": test command using bun test
-
-Also set up biome.json for the project, and tsconfig.json if not present.
-Make sure to install necessary devDependencies (@biomejs/biome, @types/bun, typescript).`
-    : "";
   const retryInstruction = retryFeedback
     ? `\n\nThe previous implementation attempt failed verification. Use the following command output, including stdout/stderr, to fix the implementation:\n\n\`\`\`\n${retryFeedback}\n\`\`\``
     : "";
@@ -37,12 +26,10 @@ Title: ${ticket.title}
 Description:
 ${ticket.body}
 
-${additionalInstruction}
 ${retryInstruction}
 
-Please implement this feature. Also write test code (using bun:test with import { test, expect, describe } from "bun:test") in files ending with .test.ts.
+Please implement this feature. Also write the necessary automated tests for the project.
 
-Use Bun as the runtime. Use TypeScript. Do not use external packages unless absolutely necessary — prefer built-in Bun APIs.
 Use the Sonnet model behavior level only. Do NOT use Opus. Do NOT use any git commands.`;
 }
 
@@ -51,18 +38,10 @@ export async function implementTicket(
   ticket: TicketDetail,
   options: ImplementTicketOptions,
 ): Promise<AgentRunResult> {
-  const {
-    workspaceDir,
-    isFirstTicket = false,
-    retryFeedback,
-    log = noopLog,
-  } = options;
+  const { workspaceDir, retryFeedback, log = noopLog } = options;
 
-  return runClaudePrompt(
-    buildImplementationPrompt(ticket, isFirstTicket, retryFeedback),
-    {
+  return runClaudePrompt(buildImplementationPrompt(ticket, retryFeedback), {
     cwd: workspaceDir,
     log,
-    },
-  );
+  });
 }

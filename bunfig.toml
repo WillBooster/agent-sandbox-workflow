@@ -1,5 +1,0 @@
-[install]
-bun = true
-
-[install.cache]
-minimumReleaseAge = 432000 # 5 days
