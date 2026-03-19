@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { runClaudePrompt } from "../src/services/claude-code";
+import type { TicketDetail } from "../src/steps/fetch-ticket";
 import {
   buildReviewEvaluationPrompt,
   buildReviewPrompt,
   reviewWorkspace,
 } from "../src/steps/review-workspace";
-import type { TicketDetail } from "../src/steps/fetch-ticket";
 import { verifyWorkspace } from "../src/steps/verify-workspace";
 
 vi.mock("../src/services/claude-code", () => ({
@@ -32,11 +32,15 @@ describe("reviewWorkspace", () => {
   test("buildReviewPrompt instructs the reviewer to use the ticket details and emit the required marker", () => {
     const prompt = buildReviewPrompt(ticket);
 
-    expect(prompt).toContain("working independently from the implementation agent");
+    expect(prompt).toContain(
+      "working independently from the implementation agent",
+    );
     expect(prompt).toContain(`Ticket ID: ${ticket.id}`);
     expect(prompt).toContain(`Title: ${ticket.title}`);
     expect(prompt).toContain(ticket.body);
-    expect(prompt).toContain('include "！要修正！" at the beginning of your review');
+    expect(prompt).toContain(
+      'include "！要修正！" at the beginning of your review',
+    );
     expect(prompt).toContain('say "LGTM"');
   });
 
@@ -44,10 +48,10 @@ describe("reviewWorkspace", () => {
     const prompt = buildReviewEvaluationPrompt("！要修正！ Fix this.");
 
     expect(prompt).toContain("working independently from the reviewer");
+    expect(prompt).toContain("You do not share context with the reviewer.");
     expect(prompt).toContain(
-      "You do not share context with the reviewer.",
+      "For each point raised, determine if it is valid and actionable.",
     );
-    expect(prompt).toContain("For each point raised, determine if it is valid and actionable.");
     expect(prompt).toContain("If a point is valid, fix the code accordingly.");
     expect(prompt).toContain('Print the rebuttal prefixed with "REBUTTAL:"');
   });
@@ -58,7 +62,10 @@ describe("reviewWorkspace", () => {
       isError: false,
     });
 
-    const result = await reviewWorkspace({ ticket, workspaceDir: "/tmp/workspace" });
+    const result = await reviewWorkspace({
+      ticket,
+      workspaceDir: "/tmp/workspace",
+    });
 
     expect(result).toEqual({
       success: true,
@@ -75,7 +82,10 @@ describe("reviewWorkspace", () => {
       isError: false,
     });
 
-    const result = await reviewWorkspace({ ticket, workspaceDir: "/tmp/workspace" });
+    const result = await reviewWorkspace({
+      ticket,
+      workspaceDir: "/tmp/workspace",
+    });
 
     expect(result).toEqual({
       success: true,
@@ -101,10 +111,15 @@ describe("reviewWorkspace", () => {
       steps: [],
     });
 
-    const result = await reviewWorkspace({ ticket, workspaceDir: "/tmp/workspace" });
+    const result = await reviewWorkspace({
+      ticket,
+      workspaceDir: "/tmp/workspace",
+    });
 
     expect(runClaudePromptMock).toHaveBeenCalledTimes(2);
-    expect(runClaudePromptMock.mock.calls[0]?.[0]).toBe(buildReviewPrompt(ticket));
+    expect(runClaudePromptMock.mock.calls[0]?.[0]).toBe(
+      buildReviewPrompt(ticket),
+    );
     expect(runClaudePromptMock.mock.calls[1]?.[0]).toContain(
       "working independently from the reviewer",
     );
@@ -116,7 +131,8 @@ describe("reviewWorkspace", () => {
       success: true,
       reviewText: "！要修正！ Missing validation for empty input.",
       needsChanges: true,
-      evaluationText: "Applied the valid fix and rebutted the invalid suggestion.",
+      evaluationText:
+        "Applied the valid fix and rebutted the invalid suggestion.",
       verification: {
         success: true,
         steps: [],

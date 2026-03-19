@@ -1,17 +1,17 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import {
-  processSingleTicket,
-  processTicketList,
-} from "../src/steps/process-tickets";
-import type { TicketDetail } from "../src/steps/fetch-ticket";
-import { implementTicket } from "../src/steps/implement-ticket";
-import { reviewWorkspace } from "../src/steps/review-workspace";
-import { verifyWorkspace } from "../src/steps/verify-workspace";
-import {
   copyWorkspaceToDist,
   ensureDir,
   initializeWorkspaceGitRepo,
 } from "../src/services/workspace";
+import type { TicketDetail } from "../src/steps/fetch-ticket";
+import { implementTicket } from "../src/steps/implement-ticket";
+import {
+  processSingleTicket,
+  processTicketList,
+} from "../src/steps/process-tickets";
+import { reviewWorkspace } from "../src/steps/review-workspace";
+import { verifyWorkspace } from "../src/steps/verify-workspace";
 
 vi.mock("../src/steps/implement-ticket", () => ({
   implementTicket: vi.fn(),

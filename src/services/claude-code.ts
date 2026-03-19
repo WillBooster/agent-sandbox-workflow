@@ -1,7 +1,7 @@
 /** プレビュー版 V2 SDK を使って Claude Code を実行する補助関数群。 */
 import {
-  type SDKMessage,
-  unstable_v2_createSession,
+  type SDKResultMessage,
+  unstable_v2_prompt,
 } from "@anthropic-ai/claude-agent-sdk";
 import { DEFAULT_MAX_TURNS, DEFAULT_MODEL } from "../shared/config";
 import { type LogFn, noopLog } from "../shared/logger";
@@ -12,10 +12,8 @@ export interface AgentRunResult {
   isError: boolean;
 }
 
-/** ストリームされた SDK の result メッセージをローカル型へ変換する。 */
-export function extractAgentResult(message: SDKMessage): AgentRunResult | null {
-  if (message.type !== "result") return null;
-
+/** SDK の result メッセージをローカル型へ変換する。 */
+export function extractAgentResult(message: SDKResultMessage): AgentRunResult {
   if (message.subtype === "success") {
     return {
       result: message.result,
@@ -72,36 +70,22 @@ export async function runClaudePrompt(
         permissionMode: "bypassPermissions",
         allowDangerouslySkipPermissions: true,
         maxTurns,
-      } as Parameters<typeof unstable_v2_createSession>[0];
+      } as Parameters<typeof unstable_v2_prompt>[1];
 
-      await using session = unstable_v2_createSession(sessionOptions);
-      await session.send(prompt);
+      const message = await unstable_v2_prompt(prompt, sessionOptions);
+      const result = extractAgentResult(message);
 
-      let finalResult: AgentRunResult | null = null;
-
-      for await (const message of session.stream()) {
-        if (message.type !== "result") continue;
-
-        const result = extractAgentResult(message);
-        if (!result) continue;
-
-        finalResult = result;
-        if (!result.isError) {
-          log(
-            `[Agent] Completed successfully (${message.num_turns} turns, $${message.total_cost_usd.toFixed(4)})`,
-          );
-        } else {
-          log(
-            `[Agent] Error: ${message.subtype} - ${result.result.slice(0, 200)}`,
-          );
-        }
+      if (!result.isError) {
+        log(
+          `[Agent] Completed successfully (${message.num_turns} turns, $${message.total_cost_usd.toFixed(4)})`,
+        );
+      } else {
+        log(
+          `[Agent] Error: ${message.subtype} - ${result.result.slice(0, 200)}`,
+        );
       }
 
-      if (!finalResult) {
-        throw new Error("Agent session completed without returning a result");
-      }
-
-      return finalResult;
+      return result;
     });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);

@@ -4,12 +4,12 @@ import {
   runClaudePrompt,
 } from "../src/services/claude-code";
 
-const { createSessionMock } = vi.hoisted(() => ({
-  createSessionMock: vi.fn(),
+const { promptMock } = vi.hoisted(() => ({
+  promptMock: vi.fn(),
 }));
 
 vi.mock("@anthropic-ai/claude-agent-sdk", () => ({
-  unstable_v2_createSession: createSessionMock,
+  unstable_v2_prompt: promptMock,
 }));
 
 describe("claude-code service", () => {
@@ -30,43 +30,30 @@ describe("claude-code service", () => {
     });
   });
 
-  test("runClaudePrompt creates a fresh SDK session for each invocation", async () => {
-    createSessionMock
-      .mockReturnValueOnce({
-        send: vi.fn().mockResolvedValue(undefined),
-        async *stream() {
-          yield {
-            type: "result",
-            subtype: "success",
-            result: "first",
-            num_turns: 1,
-            total_cost_usd: 0,
-          };
-        },
-        [Symbol.asyncDispose]: vi.fn().mockResolvedValue(undefined),
+  test("runClaudePrompt calls unstable_v2_prompt for each invocation", async () => {
+    promptMock
+      .mockResolvedValueOnce({
+        type: "result",
+        subtype: "success",
+        result: "first",
+        num_turns: 1,
+        total_cost_usd: 0,
       })
-      .mockReturnValueOnce({
-        send: vi.fn().mockResolvedValue(undefined),
-        async *stream() {
-          yield {
-            type: "result",
-            subtype: "success",
-            result: "second",
-            num_turns: 1,
-            total_cost_usd: 0,
-          };
-        },
-        [Symbol.asyncDispose]: vi.fn().mockResolvedValue(undefined),
+      .mockResolvedValueOnce({
+        type: "result",
+        subtype: "success",
+        result: "second",
+        num_turns: 1,
+        total_cost_usd: 0,
       });
 
-    const first = await runClaudePrompt("review prompt", { cwd: process.cwd() });
+    const first = await runClaudePrompt("review prompt", {
+      cwd: process.cwd(),
+    });
     const second = await runClaudePrompt("fix prompt", { cwd: process.cwd() });
 
     expect(first).toEqual({ result: "first", isError: false });
     expect(second).toEqual({ result: "second", isError: false });
-    expect(createSessionMock).toHaveBeenCalledTimes(2);
-    expect(createSessionMock.mock.results[0]?.value).not.toBe(
-      createSessionMock.mock.results[1]?.value,
-    );
+    expect(promptMock).toHaveBeenCalledTimes(2);
   });
 });
